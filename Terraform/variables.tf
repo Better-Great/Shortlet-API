@@ -19,17 +19,15 @@ variable "credentials_file" {
   type        = string
 }
 
-output "vpc_name" {
-  value       = module.vpc.network_name
-  description = "The name of the VPC"
+variable "alert_email" {
+  description = "The email address to receive alert notifications."
+  type        = string
 }
 
-output "subnet_name" {
-  value       = module.vpc.subnet_name
-  description = "The name of the subnet"
+variable "api_availability_threshold" {
+  description = "The threshold value for the API availability alert."
+  type        = number
+  default     = 0
 }
 
-output "nat_ip" {
-  value       = module.nat.nat_ip
-  description = "The external IP of the NAT gateway"
-}
+

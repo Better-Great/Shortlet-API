@@ -31,6 +31,19 @@ resource "google_compute_firewall" "allow_internal" {
   source_ranges = ["10.0.0.0/24"]
 }
 
+resource "google_compute_firewall" "allow_gke" {
+  name    = "allow-gke"
+  network = google_compute_network.vpc.name
+
+  allow {
+    protocol = "tcp"
+    ports    = ["443", "80", "10250", "8443"]
+  }
+
+  source_ranges = ["10.0.0.0/24"]
+  target_tags   = ["gke-node"]
+}
+
 output "network_name" {
   value = google_compute_network.vpc.name
 }

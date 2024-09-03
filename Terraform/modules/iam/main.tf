@@ -16,7 +16,6 @@ resource "google_project_iam_member" "gke_sa_roles" {
   member  = "serviceAccount:${google_service_account.gke_sa.email}"
 }
 
-
 output "gke_service_account" {
   value = google_service_account.gke_sa.email
 }

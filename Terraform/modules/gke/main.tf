@@ -23,6 +23,7 @@ resource "google_container_cluster" "primary" {
       display_name = "All"
     }
   }
+
 }
 
 resource "google_container_node_pool" "primary_nodes" {
@@ -42,12 +43,11 @@ resource "google_container_node_pool" "primary_nodes" {
 
     disk_size_gb = 30
     oauth_scopes = [
-      # "https://www.googleapis.com/auth/logging.write",
-      # "https://www.googleapis.com/auth/monitoring",
-
       "https://www.googleapis.com/auth/cloud-platform"
 
     ]
   }
 }
+
+
 

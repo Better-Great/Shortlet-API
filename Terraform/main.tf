@@ -7,8 +7,12 @@ module "remote_backend" {
 }
 
 resource "null_resource" "ensure_backend" {
+  provisioner "local-exec" {
+    command = "echo 'Remote Backend is set up and running.'"
+  }
   depends_on = [module.remote_backend]
 }
+
 
 # Enable required APIs
 resource "google_project_service" "apis" {
@@ -35,7 +39,8 @@ resource "null_resource" "push_image" {
   }
 
   depends_on = [
-    google_project_service.apis
+    google_project_service.apis,
+    null_resource.ensure_backend,
   ]
 }
 
@@ -43,6 +48,8 @@ module "vpc" {
   source     = "./modules/vpc"
   project_id = var.project_id
   region     = var.region
+
+  depends_on = [ null_resource.ensure_backend ]
 }
 
 module "nat" {
@@ -50,7 +57,10 @@ module "nat" {
   project_id = var.project_id
   region     = var.region
   network    = module.vpc.network_name
+
+  depends_on = [ null_resource.ensure_backend ]
 }
+
 
 module "gke" {
   source                = "./modules/gke"
@@ -64,12 +74,17 @@ module "gke" {
   max_count             = 3
   initial_node_count    = 1
   machine_type          = "e2-medium"
+
+  depends_on = [ null_resource.ensure_backend ]
 }
 
 module "iam" {
   source     = "./modules/iam"
   project_id = var.project_id
+
+  depends_on = [ null_resource.ensure_backend ]
 }
+
 
 module "k8s_resources" {
   source       = "./modules/k8s-resources"
@@ -82,6 +97,15 @@ module "k8s_resources" {
   kubernetes_ca    = module.gke.cluster_ca_certificate
   kubernetes_token = module.gke.token
 }
+
+module "monitoring" {
+  source            = "./modules/monitoring"
+  alert_email       = var.alert_email
+  api_availability_threshold = var.api_availability_threshold
+
+  depends_on = [ null_resource.ensure_backend ]
+}
+
 
 
   

@@ -69,9 +69,49 @@ resource "kubernetes_service" "current_time_api" {
   depends_on = [kubernetes_namespace.current_time_api]
 }
 
-variable "project_id" {}
-variable "cluster_name" {}
-variable "image_name" {}
-variable "kubernetes_host" {}
-variable "kubernetes_ca" {}
-variable "kubernetes_token" {}
+resource "kubernetes_config_map" "current_time_api_config" {
+  metadata {
+    name      = "current-time-api-config"
+    namespace = kubernetes_namespace.current_time_api.metadata[0].name
+  }
+
+  data = {
+    API_VERSION = "1.0"
+  }
+}
+
+resource "kubernetes_ingress_v1" "current_time_api_ingress" {
+  metadata {
+    name      = "current-time-api-ingress"
+    namespace = kubernetes_namespace.current_time_api.metadata[0].name
+    annotations = {
+      "kubernetes.io/ingress.class" = "gce"
+    }
+  }
+
+  spec {
+    rule {
+      http {
+        path {
+          path = "/*"
+          backend {
+            service {
+              name = kubernetes_service.current_time_api.metadata[0].name
+              port {
+                number = 80
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+
+
+
+output "load_balancer_ip" {
+  description = "The IP address of the Load Balancer for the API."
+  value       = kubernetes_service.current_time_api.status[0].load_balancer[0].ingress[0].ip
+}

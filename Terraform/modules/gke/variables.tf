@@ -22,25 +22,25 @@ variable "subnetwork" {
 variable "cluster_name" {
   description = "The name of the GKE cluster."
   type        = string
-  default     = "gke-cluster"  # Basic cluster name
+  default     = "current-time-api-cluster"
 }
 
 variable "node_pool_name" {
   description = "The name of the GKE node pool."
   type        = string
-  default     = "default-pool"  # Standard name for the node pool
+  default     = "current-time-api-node-pool"
 }
 
 variable "min_count" {
   description = "Minimum number of nodes in the node pool."
   type        = number
-  default     = 1  # Start with a minimum of 1 node
+  default     = 1 
 }
 
 variable "max_count" {
   description = "Maximum number of nodes in the node pool."
   type        = number
-  default     = 2  # Allow for scaling up to 3 nodes
+  default     = 2  
 }
 
 variable "initial_node_count" {
@@ -52,5 +52,5 @@ variable "initial_node_count" {
 variable "machine_type" {
   description = "The type of machine to use for the nodes."
   type        = string
-  default     = "e2-small"  # Use a small machine type
+  default     = "e2-small" 
 }
