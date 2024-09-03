@@ -2,13 +2,11 @@ name: Deploy Current Time API
 
 on:
   push:
-    branches: 
-      - main 
-  paths-ignore:
+    branches: [ main ]
+    paths-ignore:
       - 'README.md'
   pull_request:
-    branches:
-      - main
+    branches: [ main ]
     paths-ignore:
       - 'README.md'
 
@@ -22,7 +20,6 @@ jobs:
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
-
     steps:
     - name: Checkout
       uses: actions/checkout@v3
@@ -52,5 +49,39 @@ jobs:
         cd Terraform
         terraform plan -out=tfplan
 
+    - name: Terraform Apply
+      if: github.event_name == 'push'
+      run: |
+        cd Terraform
+        terraform apply -auto-approve tfplan
 
+    - name: Build Docker Image
+      run: |
+        docker build -t gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA current-time-api/
 
+    - name: Push Docker Image to GCR
+      run: |
+        docker push gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA
+
+    - name: Get GKE Credentials
+      run: |
+        gcloud container clusters get-credentials $GKE_CLUSTER --zone $GKE_ZONE --project $PROJECT_ID
+
+    - name: Deploy to GKE
+      run: |
+        kubectl set image deployment/current-time-api current-time-api=gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA
+
+    - name: Wait for Deployment
+      run: |
+        kubectl rollout status deployment/current-time-api
+
+    - name: Test API
+      run: |
+        EXTERNAL_IP=$(kubectl get service current-time-api -o jsonpath="{.status.loadBalancer.ingress[0].ip}")
+        response=$(curl -s -o /dev/null -w "%{http_code}" http://$EXTERNAL_IP)
+        if [ $response = "200" ]; then
+          echo "API is accessible"
+        else
+          echo "API is not accessible"
+          exit 1
+        fi
