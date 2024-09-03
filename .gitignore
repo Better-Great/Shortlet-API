@@ -1,0 +1,20 @@
+# Ignoring terraform statefiles in Terraform dir
+Terraform/*.tfstate
+Terraform/*.tfstate.*
+Terraform/*.tfvars
+Terraform/*.tfvars.json
+Terraform/crash.log
+Terraform/.terraform/
+Terraform/.terraform.lock.hcl
+
+# Ignoring terraform state files in remote-backend dir
+Terraform/modules/remote-backend/*.tfstate
+Terraform/modules/remote-backend/*.tfstate.*
+Terraform/modules/remote-backend/*.tfvars
+Terraform/modules/remote-backend/*.tfvars.json
+Terraform/modules/remote-backend/crash.log
+Terraform/modules/remote-backend/.terraform/
+Terraform/modules/remote-backend/.terraform.lock.hcl
+
+myenv/*
+myenv/
