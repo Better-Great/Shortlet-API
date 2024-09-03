@@ -1,0 +1,55 @@
+name: Deploy Current Time API
+
+on:
+  push:
+    branches: [ main ]
+  paths-ignore:
+      - 'README.md'
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - 'README.md'
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  GKE_CLUSTER: current-time-api-cluster
+  GKE_ZONE: us-central1-a
+  IMAGE: current-time-api
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.0.0
+
+    - name: Setup GCloud CLI
+      uses: google-github-actions/setup-gcloud@v1
+      with:
+        service_account_key: ${{ secrets.GCP_SA_KEY }}
+        project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+    - name: Configure Docker for GCR
+      run: |
+        gcloud auth configure-docker gcr.io --quiet
+
+    - name: Initialize Terraform
+      run: |
+        cd Terraform
+        terraform init
+
+    - name: Terraform Plan
+      run: |
+        cd Terraform
+        terraform plan -out=tfplan
+
+
+
