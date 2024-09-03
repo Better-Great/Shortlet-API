@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Current Time API</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Current Time API</h1>
+        <form id="timeForm">
+            <label for="format">Time Format:</label>
+            <select id="format" name="format">
+                <option value="iso">ISO 8601</option>
+                <option value="unix">UNIX Timestamp</option>
+            </select>
+
+            <label for="tz">Time Zone:</label>
+            <select id="tz" name="tz">
+                {% for zone in time_zones %}
+                <option value="{{ zone }}">{{ zone }}</option>
+                {% endfor %}
+            </select>
+
+            <button type="submit">Get Current Time</button>
+        </form>
+
+        <button id="viewRawJsonButton" onclick="viewRawJson()">View Raw JSON</button>
+
+        <div id="result">
+            <h2>Result:</h2>
+            <p id="timeOutput"></p>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+</body>
+</html>
