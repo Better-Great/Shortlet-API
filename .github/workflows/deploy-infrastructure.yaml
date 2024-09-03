@@ -42,8 +42,12 @@ jobs:
 
     - name: Authenticate GCloud CLI
       run: |
-        echo "${{ secrets.GCP_SA_KEY }}" | gcloud auth activate-service-account --key-file=-
-        
+        echo '${{ secrets.GCP_SA_KEY }}' > gcp-key.json
+        gcloud auth activate-service-account --key-file=gcp-key.json
+        rm gcp-key.json
+
+
+
     - name: Initialize Terraform
       env:
         GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
