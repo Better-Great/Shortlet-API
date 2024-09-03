@@ -40,6 +40,10 @@ jobs:
       run: |
         gcloud auth configure-docker gcr.io --quiet
 
+    - name: Authenticate GCloud CLI
+      run: |
+        echo "${{ secrets.GCP_SA_KEY }}" | gcloud auth activate-service-account --key-file=-
+        
     - name: Initialize Terraform
       env:
         GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
