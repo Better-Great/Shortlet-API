@@ -58,7 +58,7 @@ jobs:
     - name: Terraform Plan
       run: |
         cd Terraform
-        terraform plan -out=tfplan
+        TF_LOG=DEBUG terraform plan -out=tfplan
       env:
         GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
 
