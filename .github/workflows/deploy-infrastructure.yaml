@@ -15,6 +15,7 @@ env:
   GKE_CLUSTER: current-time-api-cluster
   GKE_ZONE: us-central1-a
   IMAGE: current-time-api
+  SERVICE_ACCOUNT_EMAIL: gke-service-account@ultra-task-434221-r5.iam.gserviceaccount.com
 
 jobs:
   deploy:
@@ -87,20 +88,19 @@ jobs:
       env:
         GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
  
-    # - name: Grant Artifact Registry Writer Role
-    #   run: |
-    #     gcloud projects add-iam-policy-binding $PROJECT_ID \
-    #       --member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" \
-    #       --role="roles/artifactregistry.writer"
-        
+    - name: Grant Artifact Registry Writer Role
+      run: |
+        gcloud projects add-iam-policy-binding $PROJECT_ID \
+          --member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" \
+          --role="roles/artifactregistry.writer"
 
-    # - name: Build Docker Image
-    #   run: |
-    #     docker build -t gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA current-time-api/
+    - name: Build Docker Image
+      run: |
+        docker build -t gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA current-time-api/
 
-    # - name: Push Docker Image to GCR
-    #   run: |
-    #     docker push gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA
+    - name: Push Docker Image to GCR
+      run: |
+        docker push gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA
 
     - name: Get GKE Credentials
       run: |
