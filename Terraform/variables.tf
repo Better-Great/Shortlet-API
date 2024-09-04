@@ -30,6 +30,3 @@ variable "api_availability_threshold" {
   type        = number
   default     = 0
 }
-
-
-

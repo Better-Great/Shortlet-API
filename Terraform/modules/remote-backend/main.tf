@@ -4,7 +4,6 @@ provider "google" {
   credentials = var.google_credentials
 }
 
-# Create a GCS bucket for Terraform state
 resource "google_storage_bucket" "terraform_state" {
   name     = "${var.project_id}-terraform-state"
   location = var.region

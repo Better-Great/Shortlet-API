@@ -46,11 +46,11 @@ variable "max_count" {
 variable "initial_node_count" {
   description = "Initial number of nodes in the node pool."
   type        = number
-  default     = 1  # Start with just 1 node
+  default     = 1  
 }
 
 variable "machine_type" {
   description = "The type of machine to use for the nodes."
   type        = string
-  default     = "e2-small" 
+  default     = "e2-medium" 
 }
