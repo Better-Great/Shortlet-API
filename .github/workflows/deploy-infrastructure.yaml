@@ -46,8 +46,6 @@ jobs:
         gcloud auth activate-service-account --key-file=gcp-key.json
         rm gcp-key.json
 
-
-
     - name: Initialize Terraform
       env:
         GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
@@ -56,17 +54,31 @@ jobs:
         terraform init
 
 
-
     - name: Terraform Plan
+      env:
+        GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
       run: |
         cd Terraform
         terraform plan -out=tfplan
 
     - name: Terraform Apply
       if: github.event_name == 'push'
+      env:
+        GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
       run: |
         cd Terraform
         terraform apply -auto-approve tfplan
+
+    # - name: Terraform Plan
+    #   run: |
+    #     cd Terraform
+    #     terraform plan -out=tfplan
+
+    # - name: Terraform Apply
+    #   if: github.event_name == 'push'
+    #   run: |
+    #     cd Terraform
+    #     terraform apply -auto-approve tfplan
 
     - name: Build Docker Image
       run: |
