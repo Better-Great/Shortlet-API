@@ -88,10 +88,10 @@ jobs:
         GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
  
     - name: Grant Artifact Registry Writer Role
-        run: |
-          gcloud projects add-iam-policy-binding $PROJECT_ID \
-            --member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" \
-            --role="roles/artifactregistry.writer"
+      run: |
+        gcloud projects add-iam-policy-binding $PROJECT_ID \
+          --member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" \
+          --role="roles/artifactregistry.writer"
         
 
     - name: Build Docker Image
