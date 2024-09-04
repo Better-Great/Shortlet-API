@@ -14,10 +14,11 @@ variable "zone" {
   default = "us-central1-a"
 }
 
-variable "credentials_file" {
-  description = "Path to the GCP service account key file"
+variable "google_credentials" {
+  description = "Google Cloud credentials in JSON format"
   type        = string
 }
+
 
 variable "alert_email" {
   description = "The email address to receive alert notifications."
@@ -29,5 +30,6 @@ variable "api_availability_threshold" {
   type        = number
   default     = 0
 }
+
 
 

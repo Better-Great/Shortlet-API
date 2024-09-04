@@ -8,8 +8,10 @@ variable "region" {
   type        = string
 }
 
-variable "credentials_file" {
-  description = "Path to the service account key file"
+variable "google_credentials" {
+  description = "Google Cloud credentials in JSON format"
   type        = string
 }
+
+
 

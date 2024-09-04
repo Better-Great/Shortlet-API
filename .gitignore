@@ -2,6 +2,7 @@
 Terraform/*.tfstate
 Terraform/*.tfstate.*
 Terraform/*.tfvars.json
+Terraform/*.tfvars
 Terraform/crash.log
 Terraform/.terraform/
 Terraform/.terraform.lock.hcl

@@ -2,8 +2,7 @@ module "remote_backend" {
   source          = "./modules/remote-backend"
   project_id      = var.project_id
   region          = var.region
-  credentials_file = var.credentials_file
-  
+  google_credentials = var.google_credentials
 }
 
 resource "null_resource" "ensure_backend" {
@@ -13,8 +12,6 @@ resource "null_resource" "ensure_backend" {
   depends_on = [module.remote_backend]
 }
 
-
-# Enable required APIs
 resource "google_project_service" "apis" {
   for_each = toset([
     "containerregistry.googleapis.com",
@@ -29,7 +26,7 @@ resource "google_project_service" "apis" {
 resource "null_resource" "push_image" {
   provisioner "local-exec" {
     command = <<-EOT
-      gcloud auth activate-service-account --key-file=${var.credentials_file}
+      gcloud auth activate-service-account --key-file=${var.google_credentials}
       gcloud auth configure-docker gcr.io --quiet
       cd ../current-time-api
 
@@ -85,6 +82,7 @@ module "iam" {
   depends_on = [ null_resource.ensure_backend ]
 }
 
+data "google_client_config" "default" {}
 
 module "k8s_resources" {
   source       = "./modules/k8s-resources"
@@ -93,10 +91,14 @@ module "k8s_resources" {
   image_name   = "gcr.io/${var.project_id}/current-time-api:latest"
 
   
-  kubernetes_host  = module.gke.cluster_endpoint
+  kubernetes_host  = "https://${module.gke.cluster_endpoint}"
   kubernetes_ca    = module.gke.cluster_ca_certificate
-  kubernetes_token = module.gke.token
+  #kubernetes_token = module.gke.
+  kubernetes_token = data.google_client_config.default.access_token
 }
+
+
+
 
 module "monitoring" {
   source            = "./modules/monitoring"

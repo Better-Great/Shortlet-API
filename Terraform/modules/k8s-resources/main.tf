@@ -115,3 +115,4 @@ output "load_balancer_ip" {
   description = "The IP address of the Load Balancer for the API."
   value       = kubernetes_service.current_time_api.status[0].load_balancer[0].ingress[0].ip
 }
+
