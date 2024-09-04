@@ -49,12 +49,14 @@ jobs:
         terraform init
       env:
         GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
-
-    # - name: Terraform Format
-    #   run: |
-    #     cd Terraform
-    #     terraform fmt -check
-
+      
+    - name: Force Unlock Terraform State
+      run: |
+        cd Terraform
+        terraform force-unlock -force 1725426840977966
+      env:
+        GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
+        
     - name: Terraform Plan
       run: |
         cd Terraform
