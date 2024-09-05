@@ -132,21 +132,44 @@ terraform apply
 - Ensure the API is running as expected using the load balancer ip address
 - Verify that monitoring and alerting are functioning correctly.
 
+![terraform](./images/api10.png)
+![terraform2](./images/api11.png)
+
 ### Modules
+#### Remote-Backend Module
+This module is responsible for setting up the remote backend to store Terraform state files in Google Cloud Storage. This ensures that your Terraform state is stored securely and can be accessed from anywhere.
+
+![bucket](./images/api1.png)  
+![bucket](./images/api13.png)
 #### GKE Module
 The GKE module creates a Google Kubernetes Engine (GKE) cluster. It includes configurations for the cluster's node pools, network settings, and IAM roles required for Kubernetes operations.
+![gke](./images/api4.png)
 
 #### VPC Module
 The VPC module sets up the Virtual Private Cloud (VPC) networking for the GKE cluster. It defines network subnets, routes, and other network-related resources necessary for the secure and efficient operation of the cluster.
+![vpc](./images/api2.png)
 
 #### Firewall Module
 The Firewall module configures firewall rules to control network traffic to and from the GKE cluster. It ensures that only authorized traffic is allowed and that the cluster remains secure from potential threats.
+![firewall](./images/api3.png)
 
 #### Kubernetes Module
 The Kubernetes module manages the deployment of Kubernetes resources, including deployments, services, and namespaces. It defines how the microservices are deployed and exposed within the cluster.
+![clusters](./images/api14.png)
 
 #### Container Registry Module
 The Container Registry module handles the setup of Google Container Registry for storing Docker images. It allows the CI/CD pipeline to push and pull images required for deploying microservices to the GKE cluster. 
+![container](./images/api12.png)
+
+#### Monitoring Module
+This module sets up monitoring and alerting for the GKE cluster and deployed application using Google Cloud Monitoring. It ensures that the application’s health and performance are continuously monitored.
+
+![monitoring](./images/api5.png)
+![monitoring2](./images/api6.png)
+![monitoring3](./images/api7.png)
+![monitoring4](./images/api8.png)
+![monitoring5](./images/api9.png)
+
 
 
 
