@@ -2,6 +2,7 @@
 
 This repository contains the configurations to deploy an infrastructure for a Current Time API on Google Cloud Platform (GCP). The infrastructure includes a VPC, NAT gateway,  Google Kubernetes Engine (GKE) cluster, IAM roles, and Kubernetes resources.
 
+![image](./images/api.png)
 ## Project Structure
 
 ```plaintext
