@@ -88,22 +88,6 @@ jobs:
       env:
         GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
 
-    - name: Install GKE Auth Plugin
-      run: |
-        gcloud components install gke-gcloud-auth-plugin
-        echo "export USE_GKE_GCLOUD_AUTH_PLUGIN=True" >> $GITHUB_ENV
-
-
-    - name: Grant Artifact Registry Writer Role
-      run: |
-        echo '${{ secrets.GCP_SA_KEY }}' > /tmp/sa_key.json
-        gcloud auth activate-service-account --key-file=/tmp/sa_key.json
-        gcloud projects add-iam-policy-binding $PROJECT_ID \
-          --member="serviceAccount:$SERVICE_ACCOUNT_EMAIL" \
-          --role="roles/artifactregistry.writer"
-        rm /tmp/sa_key.json
-
-
     - name: Build Docker Image
       run: |
         docker build -t gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA current-time-api/
@@ -111,6 +95,23 @@ jobs:
     - name: Push Docker Image to GCR
       run: |
         docker push gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA
+
+    - name: Output Image Identifier
+      run: |
+        echo "Image successfully built and pushed to GCR"
+        echo "Image identifier: gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA"
+        echo "IMAGE_ID=gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA" >> $GITHUB_ENV
+
+    - name: Create Deployment Artifact
+      run: |
+        echo "To deploy this image, use the following command:" > deployment_instructions.txt
+        echo "kubectl set image deployment/current-time-api current-time-api=$IMAGE_ID" >> deployment_instructions.txt
+
+    - name: Upload Deployment Instructions
+      uses: actions/upload-artifact@v2
+      with:
+        name: deployment-instructions
+        path: deployment_instructions.txt
 
     - name: Get GKE Credentials
       run: |
@@ -124,49 +125,13 @@ jobs:
       run: |
         kubectl rollout status deployment/current-time-api
 
-
-
-
-
-
-
-
-
-#     - name: Configure Docker for GCR
-#       run: |
-#         gcloud auth configure-docker gcr.io --quiet
-#         gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://gcr.io
-
-
-#     - name: Build Docker Image
-#       run: |
-#         docker build -t gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA current-time-api/
-
-#     - name: Push Docker Image to GCR
-#       run: |
-#         docker push gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA
-
-#     - name: Get GKE Credentials
-#       run: |
-#         gcloud container clusters get-credentials $GKE_CLUSTER --zone $GKE_ZONE --project $PROJECT_ID
-
-#     - name: Deploy to GKE
-#       run: |
-#         kubectl set image deployment/current-time-api current-time-api=gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA
-
-#     - name: Wait for Deployment
-#       run: |
-#         kubectl rollout status deployment/current-time-api
-
-#     - name: Test API
-#       run: |
-#         EXTERNAL_IP=$(kubectl get service current-time-api -o jsonpath="{.status.loadBalancer.ingress[0].ip}")
-#         response=$(curl -s -o /dev/null -w "%{http_code}" http://$EXTERNAL_IP)
-#         if [ $response = "200" ]; then
-#           echo "API is accessible"
-#         else
-#           echo "API is not accessible"
-#           exit 1
-#         fi
-
-# #jgj
+    - name: Test API
+      run: |
+        EXTERNAL_IP=$(kubectl get service current-time-api -o jsonpath="{.status.loadBalancer.ingress[0].ip}")
+        response=$(curl -s -o /dev/null -w "%{http_code}" http://$EXTERNAL_IP)
+        if [ $response = "200" ]; then
+          echo "API is accessible"
+        else
+          echo "API is not accessible"
+          exit 1
+        fi
