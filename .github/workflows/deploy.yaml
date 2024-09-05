@@ -1,0 +1,99 @@
+name: Deploy Current Time API
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - 'README.md'
+  pull_request:
+    branches: [ main ]
+    paths-ignore:
+      - 'README.md'
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  GKE_CLUSTER: current-time-api-cluster
+  GKE_ZONE: us-central1-a
+  IMAGE: current-time-api
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Google Cloud SDK
+      uses: google-github-actions/setup-gcloud@v1
+      with:
+        version: 'latest'
+
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v1
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+    - name: Configure Docker for GCR
+      run: gcloud auth configure-docker gcr.io --quiet
+
+    - name: Set up Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.0.0
+
+    - name: Create Terraform variables file
+      run: |
+        echo 'google_credentials = <<EOT' > terraform.tfvars
+        echo '${{ secrets.GCP_SA_KEY }}' >> terraform.tfvars
+        echo 'EOT' >> terraform.tfvars
+
+    - name: Initialize Terraform
+      run: |
+        cd Terraform
+        terraform init
+      env:
+        GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
+
+    - name: Terraform Plan
+      run: |
+        cd Terraform
+        terraform plan -out=tfplan -var-file="../terraform.tfvars" -lock-timeout=5m
+      env:
+        GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
+        
+    - name: Terraform Apply
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      run: |
+        cd Terraform
+        terraform apply -auto-approve tfplan
+      env:
+        GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
+
+    - name: Build Docker Image
+      run: docker build -t gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA current-time-api/
+
+    - name: Push Docker Image to GCR
+      run: docker push gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA
+
+    - name: Get GKE Credentials
+      run: gcloud container clusters get-credentials $GKE_CLUSTER --zone $GKE_ZONE --project $PROJECT_ID
+
+    - name: Deploy to GKE
+      run: |
+        kubectl create namespace current-time-api --dry-run=client -o yaml | kubectl apply -f -
+        kubectl create deployment current-time-api --image=gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA -n current-time-api --dry-run=client -o yaml | kubectl apply -f -
+        kubectl expose deployment current-time-api --type=LoadBalancer --port=80 --target-port=5000 -n current-time-api --dry-run=client -o yaml | kubectl apply -f -
+        kubectl rollout status deployment/current-time-api -n current-time-api
+
+    - name: Test API
+      run: |
+        EXTERNAL_IP=$(kubectl get service current-time-api -n current-time-api -o jsonpath="{.status.loadBalancer.ingress[0].ip}")
+        response=$(curl -s -o /dev/null -w "%{http_code}" http://$EXTERNAL_IP)
+        if [ $response = "200" ]; then
+          echo "API is accessible"
+        else
+          echo "API is not accessible"
+          exit 1
+        fi
