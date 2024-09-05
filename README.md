@@ -7,16 +7,13 @@ This repository contains the configurations to deploy an infrastructure for a Cu
 
 ```plaintext
 Terraform/
-├── Remote-backend/
-│   ├── main.tf
-│   ├── variables.tf
-│   ├── outputs.tf
-│   └── backend.tf
 ├── modules/
 │   ├── gke/
 │   ├── vpc/
 │   ├── nat/
 │   ├── iam/
+│   ├── monitoring/
+│   ├── remote-backend/
 │   └── k8s-resources/
 ├── main.tf
 ├── variables.tf
@@ -170,6 +167,10 @@ This module sets up monitoring and alerting for the GKE cluster and deployed app
 ![monitoring3](./images/api7.png)
 ![monitoring4](./images/api8.png)
 ![monitoring5](./images/api9.png)
+
+#### Testing API
+![api](./images/api15.png)
+![api](./images/api16.png)
 
 
 
