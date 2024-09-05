@@ -122,27 +122,34 @@ jobs:
         echo "To deploy this image, use the following command:" > deployment_instructions.txt
         echo "kubectl set image deployment/current-time-api current-time-api=$IMAGE_ID" >> deployment_instructions.txt
 
-    - name: Upload Deployment Instructions
-      uses: actions/upload-artifact@v2
-      with:
-        name: deployment-instructions
-        path: deployment_instructions.txt
-
-    - name: Get GKE Credentials
+    - name: Check and Create Kubernetes Resources
       run: |
-        gcloud container clusters get-credentials $GKE_CLUSTER --zone $GKE_ZONE --project $PROJECT_ID
+        # Check if namespace exists, create if it doesn't
+        if ! kubectl get namespace current-time-api &> /dev/null; then
+          kubectl create namespace current-time-api
+        fi
+
+        # Check if deployment exists, create if it doesn't
+        if ! kubectl get deployment current-time-api -n current-time-api &> /dev/null; then
+          kubectl create deployment current-time-api --image=gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA -n current-time-api
+        fi
+
+        # Check if service exists, create if it doesn't
+        if ! kubectl get service current-time-api -n current-time-api &> /dev/null; then
+          kubectl expose deployment current-time-api --type=LoadBalancer --port=80 --target-port=5000 -n current-time-api
+        fi
 
     - name: Deploy to GKE
       run: |
-        kubectl set image deployment/current-time-api current-time-api=gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA
+        kubectl set image deployment/current-time-api current-time-api=gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA -n current-time-api
 
     - name: Wait for Deployment
       run: |
-        kubectl rollout status deployment/current-time-api
+        kubectl rollout status deployment/current-time-api -n current-time-api
 
     - name: Test API
       run: |
-        EXTERNAL_IP=$(kubectl get service current-time-api -o jsonpath="{.status.loadBalancer.ingress[0].ip}")
+        EXTERNAL_IP=$(kubectl get service current-time-api -n current-time-api -o jsonpath="{.status.loadBalancer.ingress[0].ip}")
         response=$(curl -s -o /dev/null -w "%{http_code}" http://$EXTERNAL_IP)
         if [ $response = "200" ]; then
           echo "API is accessible"
